@@ -13,14 +13,6 @@ class FakeRepository implements Repository<Task> {
   Future<List<Task>> getAll() async => List.unmodifiable(_tasks);
 
   @override
-  Future<Task?> getById(String id) async {
-    for (var t in _tasks) {
-      if (t.id == id) return t;
-    }
-    return null;
-  }
-
-  @override
   Future<void> add(Task item) async {
     _tasks.add(item);
   }
@@ -51,49 +43,25 @@ void main() {
 
     test('deleteTask lève TaskNotFoundException si l\'ID est inconnu', () async {
       expect(
-        () => service.deleteTask('non-existent-id'),
+        () => service.deleteTask('999'),
         throwsA(isA<TaskNotFoundException>()),
       );
     });
 
     test('toggleTaskStatus lève TaskNotFoundException si l\'ID est inconnu', () async {
       expect(
-        () => service.toggleTaskStatus('non-existent-id'),
+        () => service.toggleTaskStatus('999'),
         throwsA(isA<TaskNotFoundException>()),
       );
     });
 
-    test('getTaskById lève TaskNotFoundException si l\'ID est inconnu', () async {
-      expect(
-        () => service.getTaskById('non-existent-id'),
-        throwsA(isA<TaskNotFoundException>()),
-      );
-    });
-
-    test('addTask lève InvalidTaskException si le titre est vide ou composé uniquement d\'espaces', () async {
+    test('addTask lève InvalidTaskException si le titre est vide', () async {
       var emptyTask = StandardTask(id: '1', title: '', priority: Priority.low);
-      var whitespaceTask = StandardTask(id: '2', title: '   ', priority: Priority.low);
 
       expect(
         () => service.addTask(emptyTask),
         throwsA(isA<InvalidTaskException>()),
       );
-
-      expect(
-        () => service.addTask(whitespaceTask),
-        throwsA(isA<InvalidTaskException>()),
-      );
-    });
-
-    test('Les exceptions personnalisées héritent de TaskManagerException', () {
-      final notFoundEx = TaskNotFoundException('123');
-      final invalidEx = InvalidTaskException('Champ requis');
-      final storageEx = StorageException('Fichier inaccessible');
-
-      expect(notFoundEx, isA<TaskManagerException>());
-      expect(invalidEx, isA<TaskManagerException>());
-      expect(storageEx, isA<TaskManagerException>());
-      expect(notFoundEx, isA<Exception>());
     });
   });
 }

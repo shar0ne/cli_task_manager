@@ -1,5 +1,6 @@
 import 'task.dart';
 
+
 class StandardTask extends Task {
   StandardTask({
     required super.id,
@@ -8,12 +9,6 @@ class StandardTask extends Task {
     super.deadline,
     super.isDone,
   });
-
-  @override
-  String get typeName => 'Standard';
-
-  @override
-  String get icon => '📌';
 
   @override
   Map<String, dynamic> toJson() {
@@ -27,4 +22,3 @@ class StandardTask extends Task {
     };
   }
 }
-

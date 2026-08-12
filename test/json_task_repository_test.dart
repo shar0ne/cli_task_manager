@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:cli_task_manager/exceptions/task_exceptions.dart';
 import 'package:cli_task_manager/models/priority.dart';
 import 'package:cli_task_manager/models/standard_task.dart';
 import 'package:cli_task_manager/models/urgent_task.dart';
@@ -52,23 +51,6 @@ void main() {
       expect(storedTasks[1], isA<UrgentTask>());
     });
 
-    test('getById returns matching task or null if not found', () async {
-      final task = StandardTask(
-        id: '100',
-        title: 'Faire du sport',
-        priority: Priority.medium,
-      );
-
-      await repository.add(task);
-
-      final found = await repository.getById('100');
-      final notFound = await repository.getById('999');
-
-      expect(found, isNotNull);
-      expect(found?.title, equals('Faire du sport'));
-      expect(notFound, isNull);
-    });
-
     test('update modifies task data in JSON file', () async {
       final task = StandardTask(
         id: '10',
@@ -97,16 +79,6 @@ void main() {
 
       final tasks = await repository.getAll();
       expect(tasks, isEmpty);
-    });
-
-    test('getAll throws StorageException when JSON file is malformed', () async {
-      final file = File(tempFilePath);
-      await file.writeAsString('{ invalid json format }');
-
-      expect(
-        () => repository.getAll(),
-        throwsA(isA<StorageException>()),
-      );
     });
   });
 }

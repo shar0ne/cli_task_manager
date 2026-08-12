@@ -1,22 +1,15 @@
-abstract class TaskManagerException implements Exception {
-  final String message;
-  const TaskManagerException(this.message);
+class TaskNotFoundException implements Exception {
+  final String id;
+  TaskNotFoundException(this.id);
 
   @override
-  String toString() => message;
+  String toString() => 'TaskNotFoundException: aucune tâche trouvée avec l\'ID $id';
 }
 
-class TaskNotFoundException extends TaskManagerException {
-  final String id;
-  TaskNotFoundException(this.id)
-      : super('Aucune tâche trouvée avec l\'ID "$id".');
-}
+class InvalidTaskException implements Exception {
+  final String message;
+  InvalidTaskException(this.message);
 
-class InvalidTaskException extends TaskManagerException {
-  InvalidTaskException(super.message);
+  @override
+  String toString() => 'InvalidTaskException: $message';
 }
-
-class StorageException extends TaskManagerException {
-  StorageException(super.message);
-}
-

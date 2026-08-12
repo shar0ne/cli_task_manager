@@ -57,10 +57,12 @@ class Menu {
           default:
             print('⚠️ Choix invalide. Veuillez saisir un nombre entre 1 et 7.');
         }
-      } on TaskManagerException catch (e) {
-        print('⚠️ Erreur : $e');
+      } on InvalidTaskException catch (e) {
+        print('⚠️ $e');
+      } on TaskNotFoundException catch (e) {
+        print('⚠️ $e');
       } catch (e) {
-        print('❌ Une erreur inattendue est survenue : $e');
+        print('❌ Une erreur est survenue : $e');
       }
     }
   }
@@ -84,11 +86,12 @@ class Menu {
     print('\n--- 📋 LISTE DES TÂCHES (${tasks.length}) ---');
     for (var task in tasks) {
       String status = task.isDone ? '[X]' : '[ ]';
+      String icon = task is UrgentTask ? '⚡' : '📌';
       String deadlineStr = task.deadline != null
           ? ' (Échéance: ${task.deadline.toString().split(' ')[0]})'
           : '';
       print(
-        '$status ${task.icon} [ID: ${task.id}] ${task.title} | Priorité: ${task.priority.label} (${task.priority.name.toUpperCase()})$deadlineStr',
+        '$status $icon [ID: ${task.id}] ${task.title} | Priorité: ${task.priority.name.toUpperCase()}$deadlineStr',
       );
     }
   }
@@ -101,7 +104,7 @@ class Menu {
       return;
     }
 
-    print('Priorité : 1. Basse (low)  2. Moyenne (medium)  3. Haute (high)');
+    print('Priorité : 1. Low  2. Medium  3. High');
     stdout.write('Choix (1-3) [défaut = 2] : ');
     String? pChoice = stdin.readLineSync()?.trim();
     Priority priority = Priority.medium;
@@ -196,4 +199,3 @@ class Menu {
     print('Tâches en retard   : ${overdue.length}');
   }
 }
-

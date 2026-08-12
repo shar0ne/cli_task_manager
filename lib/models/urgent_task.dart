@@ -10,12 +10,6 @@ class UrgentTask extends Task {
   }) : super(priority: Priority.high);
 
   @override
-  String get typeName => 'Urgente';
-
-  @override
-  String get icon => '⚡';
-
-  @override
   Map<String, dynamic> toJson() {
     return {
       'type': 'urgent',
@@ -27,4 +21,3 @@ class UrgentTask extends Task {
     };
   }
 }
-

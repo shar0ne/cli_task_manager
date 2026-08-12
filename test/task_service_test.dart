@@ -13,14 +13,6 @@ class FakeRepository implements Repository<Task> {
   Future<List<Task>> getAll() async => List.unmodifiable(_tasks);
 
   @override
-  Future<Task?> getById(String id) async {
-    for (var t in _tasks) {
-      if (t.id == id) return t;
-    }
-    return null;
-  }
-
-  @override
   Future<void> add(Task item) async {
     _tasks.add(item);
   }
@@ -55,14 +47,6 @@ void main() {
       var tasks = await service.getAllTasks();
       expect(tasks.length, 1);
       expect(tasks.first.title, 'Test Task');
-    });
-
-    test('getTaskById retourne la tâche si elle existe', () async {
-      var task = StandardTask(id: '10', title: 'Recherche', priority: Priority.high);
-      await service.addTask(task);
-      var result = await service.getTaskById('10');
-      expect(result.id, equals('10'));
-      expect(result.title, equals('Recherche'));
     });
 
     test('deleteTask supprime une tâche existante', () async {

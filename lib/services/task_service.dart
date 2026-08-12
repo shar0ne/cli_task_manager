@@ -12,17 +12,9 @@ class TaskService {
     return await _repository.getAll();
   }
 
-  Future<Task> getTaskById(String id) async {
-    final task = await _repository.getById(id);
-    if (task == null) {
-      throw TaskNotFoundException(id);
-    }
-    return task;
-  }
-
   Future<List<Task>> getAllTasksSortedByPriority() async {
     List<Task> tasks = List<Task>.from(await _repository.getAll());
-    tasks.sort((a, b) => b.priority.compareTo(a.priority));
+    tasks.sort((a, b) => b.priority.index.compareTo(a.priority.index));
     return tasks;
   }
 
@@ -37,47 +29,50 @@ class TaskService {
     return tasks;
   }
 
-
   Future<void> addTask(Task task) async {
     if (task.title.trim().isEmpty) {
-      throw InvalidTaskException('Le titre de la tâche ne peut pas être vide.');
+      throw InvalidTaskException('Le titre ne peut pas être vide');
     }
     await _repository.add(task);
   }
 
   Future<void> deleteTask(String id) async {
-    final task = await _repository.getById(id);
-    if (task == null) {
+    List<Task> tasks = await _repository.getAll();
+    bool exists = tasks.any((t) => t.id == id);
+    if (!exists) {
       throw TaskNotFoundException(id);
     }
     await _repository.delete(id);
   }
 
   Future<void> markTaskAsDone(String id) async {
-    final task = await _repository.getById(id);
-    if (task == null) {
+    List<Task> tasks = await _repository.getAll();
+    int index = tasks.indexWhere((t) => t.id == id);
+    if (index == -1) {
       throw TaskNotFoundException(id);
     }
-    task.isDone = true;
-    await _repository.update(task);
+    tasks[index].isDone = true;
+    await _repository.update(tasks[index]);
   }
 
   Future<void> markTaskAsUndone(String id) async {
-    final task = await _repository.getById(id);
-    if (task == null) {
+    List<Task> tasks = await _repository.getAll();
+    int index = tasks.indexWhere((t) => t.id == id);
+    if (index == -1) {
       throw TaskNotFoundException(id);
     }
-    task.isDone = false;
-    await _repository.update(task);
+    tasks[index].isDone = false;
+    await _repository.update(tasks[index]);
   }
 
   Future<void> toggleTaskStatus(String id) async {
-    final task = await _repository.getById(id);
-    if (task == null) {
+    List<Task> tasks = await _repository.getAll();
+    int index = tasks.indexWhere((t) => t.id == id);
+    if (index == -1) {
       throw TaskNotFoundException(id);
     }
-    task.isDone = !task.isDone;
-    await _repository.update(task);
+    tasks[index].isDone = !tasks[index].isDone;
+    await _repository.update(tasks[index]);
   }
 
   Future<List<Task>> getPendingTasks() async {
@@ -113,4 +108,3 @@ class TaskService {
     return (completedCount / tasks.length) * 100;
   }
 }
-
