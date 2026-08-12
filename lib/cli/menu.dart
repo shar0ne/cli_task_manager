@@ -4,12 +4,14 @@ import '../models/priority.dart';
 import '../models/standard_task.dart';
 import '../models/urgent_task.dart';
 import '../services/task_service.dart';
+import '../exceptions/task_exceptions.dart';
 
 class Menu {
   final TaskService _service;
 
   Menu(this._service);
-Future<void> start() async {
+
+  Future<void> start() async {
     bool running = true;
 
     while (running) {
@@ -56,8 +58,18 @@ Future<void> start() async {
       }
     }
   }
-Future<void> _showAllTasks() async {
-    var tasks = await _service.getAllTasks();
+
+  Future<void> _showAllTasks() async {
+    print('\nTrier par : 1. Priorité  2. Date limite  3. Aucun tri');
+    stdout.write('Choix (1-3) [défaut = 3] : ');
+    String? sortChoice = stdin.readLineSync();
+
+    var tasks = sortChoice == '1'
+        ? await _service.getAllTasksSortedByPriority()
+        : sortChoice == '2'
+            ? await _service.getAllTasksSortedByDeadline()
+            : await _service.getAllTasks();
+
     if (tasks.isEmpty) {
       print('\nAucune tâche enregistrée.');
       return;
@@ -73,7 +85,8 @@ Future<void> _showAllTasks() async {
       print('$status $type [ID: ${task.id}] ${task.title} | Priorité: ${task.priority.name.toUpperCase()}$deadlineStr');
     }
   }
-Future<void> _addStandardTask() async {
+
+  Future<void> _addStandardTask() async {
     stdout.write('\nTitre de la tâche : ');
     String? title = stdin.readLineSync();
     if (title == null || title.trim().isEmpty) {
@@ -103,10 +116,15 @@ Future<void> _addStandardTask() async {
       deadline: deadline,
     );
 
-    await _service.addTask(task);
-    print('✅ Tâche standard créée avec succès ! (ID: $id)');
+    try {
+      await _service.addTask(task);
+      print('✅ Tâche standard créée avec succès ! (ID: $id)');
+    } on InvalidTaskException catch (e) {
+      print('⚠️ $e');
+    }
   }
-Future<void> _addUrgentTask() async {
+
+  Future<void> _addUrgentTask() async {
     stdout.write('\nTitre de la tâche urgente : ');
     String? title = stdin.readLineSync();
     if (title == null || title.trim().isEmpty) {
@@ -128,26 +146,41 @@ Future<void> _addUrgentTask() async {
       deadline: deadline,
     );
 
-    await _service.addTask(task);
-    print('⚡ Tâche urgente créée (Priorité HIGH automatique) ! (ID: $id)');
+    try {
+      await _service.addTask(task);
+      print('⚡ Tâche urgente créée (Priorité HIGH automatique) ! (ID: $id)');
+    } on InvalidTaskException catch (e) {
+      print('⚠️ $e');
+    }
   }
-Future<void> _toggleTask() async {
+
+  Future<void> _toggleTask() async {
     stdout.write('\nEntrez l\'ID de la tâche à modifier : ');
     String? id = stdin.readLineSync();
-    if (id != null && id.isNotEmpty) {
+    if (id == null || id.isEmpty) return;
+
+    try {
       await _service.toggleTaskStatus(id.trim());
       print('🔄 Statut de la tâche mis à jour !');
+    } on TaskNotFoundException catch (e) {
+      print('⚠️ $e');
     }
   }
-Future<void> _deleteTask() async {
+
+  Future<void> _deleteTask() async {
     stdout.write('\nEntrez l\'ID de la tâche à supprimer : ');
     String? id = stdin.readLineSync();
-    if (id != null && id.isNotEmpty) {
+    if (id == null || id.isEmpty) return;
+
+    try {
       await _service.deleteTask(id.trim());
       print('🗑️ Tâche supprimée !');
+    } on TaskNotFoundException catch (e) {
+      print('⚠️ $e');
     }
   }
-Future<void> _showStatsAndFilters() async {
+
+  Future<void> _showStatsAndFilters() async {
     double rate = await _service.getCompletionRate();
     var pending = await _service.getPendingTasks();
     var overdue = await _service.getOverdueTasks();

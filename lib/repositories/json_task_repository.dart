@@ -5,6 +5,7 @@ import '../models/standard_task.dart';
 import '../models/task.dart';
 import '../models/urgent_task.dart';
 import 'repository.dart';
+
 class JsonTaskRepository implements Repository<Task> {
   final File _file;
 
