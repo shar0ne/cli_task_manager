@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import '../models/priority.dart';
-import '../models/standard_task.dart';
+import '../exceptions/task_exceptions.dart';
 import '../models/task.dart';
-import '../models/urgent_task.dart';
 import 'repository.dart';
 
 class JsonTaskRepository implements Repository<Task> {
@@ -13,54 +11,54 @@ class JsonTaskRepository implements Repository<Task> {
 
   @override
   Future<List<Task>> getAll() async {
-    if (!await _file.exists()) {
-      return [];
-    }
+    try {
+      if (!await _file.exists()) {
+        return [];
+      }
 
-    String content = await _file.readAsString();
-    if (content.trim().isEmpty) {
-      return [];
-    }
+      String content = await _file.readAsString();
+      if (content.trim().isEmpty) {
+        return [];
+      }
 
-    List<dynamic> jsonList = jsonDecode(content);
-    List<Task> tasks = [];
-
-    for (var map in jsonList) {
-      Priority priority = Priority.values.byName(map['priority']);
-      DateTime? deadline = map['deadline'] != null
-          ? DateTime.parse(map['deadline'])
-          : null;
-
-      if (map['type'] == 'urgent') {
-        tasks.add(
-          UrgentTask(
-            id: map['id'],
-            title: map['title'],
-            deadline: deadline,
-            isDone: map['isDone'],
-          ),
-        );
-      } else {
-        tasks.add(
-          StandardTask(
-            id: map['id'],
-            title: map['title'],
-            priority: priority,
-            deadline: deadline,
-            isDone: map['isDone'],
-          ),
+      List<dynamic> jsonList = jsonDecode(content);
+      return jsonList
+          .map((map) => Task.fromJson(map as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      if (e is FormatException) {
+        throw StorageException(
+          'Fichier JSON corrompu ou format invalide : ${e.message}',
         );
       }
+      if (e is StorageException) rethrow;
+      throw StorageException('Erreur lors de la lecture des données : $e');
     }
-
-    return tasks;
   }
 
-  // Méthode privée pour réécrire la liste complète dans le fichier JSON
+  @override
+  Future<Task?> getById(String id) async {
+    List<Task> tasks = await getAll();
+    for (var task in tasks) {
+      if (task.id == id) return task;
+    }
+    return null;
+  }
+
   Future<void> _saveAll(List<Task> tasks) async {
-    List<Map<String, dynamic>> jsonList = tasks.map((t) => t.toJson()).toList();
-    String content = jsonEncode(jsonList);
-    await _file.writeAsString(content);
+    try {
+      if (!await _file.parent.exists()) {
+        await _file.parent.create(recursive: true);
+      }
+      List<Map<String, dynamic>> jsonList = tasks.map((t) => t.toJson()).toList();
+      String content = const JsonEncoder.withIndent('  ').convert(jsonList);
+      await _file.writeAsString(content);
+    } catch (e) {
+      if (e is StorageException) rethrow;
+      throw StorageException(
+        'Erreur lors de la sauvegarde des données : $e',
+      );
+    }
   }
 
   @override
@@ -87,3 +85,4 @@ class JsonTaskRepository implements Repository<Task> {
     await _saveAll(tasks);
   }
 }
+

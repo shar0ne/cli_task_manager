@@ -10,6 +10,12 @@ class StandardTask extends Task {
   });
 
   @override
+  String get typeName => 'Standard';
+
+  @override
+  String get icon => '📌';
+
+  @override
   Map<String, dynamic> toJson() {
     return {
       'type': 'standard',
@@ -21,3 +27,4 @@ class StandardTask extends Task {
     };
   }
 }
+
